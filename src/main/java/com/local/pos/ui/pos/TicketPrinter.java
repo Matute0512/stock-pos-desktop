@@ -4,6 +4,7 @@ import com.local.pos.core.AlertUtil;
 import com.local.pos.domain.model.PaymentMethod;
 import com.local.pos.domain.model.Sale;
 import com.local.pos.domain.model.SaleItem;
+import com.local.pos.domain.service.SettingsService;
 import javafx.print.PrinterJob;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -21,11 +22,11 @@ public final class TicketPrinter {
     private TicketPrinter() {
     }
 
-    public static VBox buildTicket(Sale sale, List<SaleItem> items) {
+    public static VBox buildTicket(SettingsService settings, Sale sale, List<SaleItem> items) {
         VBox ticket = new VBox(4);
         ticket.getStyleClass().add("ticket");
 
-        Label local = new Label("Mi Local");
+        Label local = new Label(settings.getStoreName());
         local.getStyleClass().add("ticket-title");
 
         String date = sale.getSaleDate() != null ? sale.getSaleDate().format(DATE_FMT) : "";
@@ -61,7 +62,7 @@ public final class TicketPrinter {
 
         ticket.getChildren().add(separator());
 
-        Label thanks = new Label("Gracias por su compra");
+        Label thanks = new Label(settings.getTicketFooter());
         thanks.getStyleClass().add("ticket-title");
         ticket.getChildren().add(thanks);
 

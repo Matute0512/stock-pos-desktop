@@ -5,6 +5,7 @@ import com.local.pos.ui.navigation.NavigationService;
 import com.local.pos.ui.views.DashboardView;
 import com.local.pos.ui.views.PlaceholderView;
 import com.local.pos.ui.views.PosView;
+import com.local.pos.ui.views.SettingsView;
 import com.local.pos.ui.views.StockView;
 import com.local.pos.config.AppContext;
 
@@ -111,7 +112,17 @@ public class MainShellView {
             AppView.POS,
             new PosView(
                 appContext.getProductService(),
-                appContext.getSaleService()
+                appContext.getSaleService(),
+                appContext.getSettingsService()
+            )
+        );
+
+        navigationService.register(
+            AppView.SETTINGS,
+            new SettingsView(
+                appContext.getSettingsService(),
+                appContext.getBackupService(),
+                appContext::shutdown
             )
         );
 

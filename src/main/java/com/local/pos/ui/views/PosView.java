@@ -7,6 +7,7 @@ import com.local.pos.domain.model.Sale;
 import com.local.pos.domain.model.SaleItem;
 import com.local.pos.domain.service.ProductService;
 import com.local.pos.domain.service.SaleService;
+import com.local.pos.domain.service.SettingsService;
 import com.local.pos.ui.pos.CartItem;
 import com.local.pos.ui.pos.PaymentDialog;
 import com.local.pos.ui.pos.SalesHistoryDialog;
@@ -42,6 +43,7 @@ public class PosView extends VBox {
 
     private final ProductService productService;
     private final SaleService saleService;
+    private final SettingsService settingsService;
 
     private final TextField searchField = new TextField();
     private final Button addButton = new Button("Agregar");
@@ -55,9 +57,10 @@ public class PosView extends VBox {
     private final TextField discountField = new TextField("0");
     private final Label totalLabel = new Label("$ 0.00");
 
-    public PosView(ProductService productService, SaleService saleService) {
+    public PosView(ProductService productService, SaleService saleService, SettingsService settingsService) {
         this.productService = productService;
         this.saleService = saleService;
+        this.settingsService = settingsService;
 
         getStyleClass().add("view");
         setSpacing(18);
@@ -523,7 +526,7 @@ public class PosView extends VBox {
 
                 boolean print = AlertUtil.confirm("Ticket", "¿Imprimir el ticket de la venta?");
                 if (print) {
-                    TicketPrinter.print(TicketPrinter.buildTicket(sale, saleItems));
+                    TicketPrinter.print(TicketPrinter.buildTicket(settingsService, sale, saleItems));
                 }
 
             } catch (BusinessException e) {
