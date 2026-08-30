@@ -6,6 +6,7 @@ import com.local.pos.ui.views.DashboardView;
 import com.local.pos.ui.views.PlaceholderView;
 import com.local.pos.ui.views.PosView;
 import com.local.pos.ui.views.StockView;
+import com.local.pos.config.AppContext;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -31,14 +32,16 @@ public class MainShellView {
     private final Map<AppView, ToggleButton> navButtons = new EnumMap<>(AppView.class);
 
     private Label pageTitle;
+    private AppContext appContext;
 
-    public MainShellView() {
+    public MainShellView(AppContext appContext) {
+        this.appContext = appContext;
         navigationService = new NavigationService(contentArea);
 
         root.getStyleClass().add("app-shell");
         contentArea.getStyleClass().add("content-area");
 
-        registerViews();
+        registerPlaceholderViews();
 
         root.setLeft(buildSidebar());
         root.setTop(buildTopbar());
@@ -52,17 +55,28 @@ public class MainShellView {
         });
 
         navigationService.navigateTo(AppView.DASHBOARD);
+
+        if (appContext != null) {
+            initializeWithData(appContext);
+        }
     }
 
-    public BorderPane getRoot() {
-        return root;
-    }
-
-    private void registerViews() {
-        navigationService.register(AppView.DASHBOARD, new DashboardView());
-        navigationService.register(AppView.STOCK, new StockView());
-        navigationService.register(AppView.POS, new PosView());
-
+    private void registerPlaceholderViews() {
+        navigationService.register(
+            AppView.DASHBOARD,
+            new DashboardView()
+        );
+        navigationService.register(
+            AppView.STOCK,
+            new PlaceholderView(
+                "Stock",
+                "Cargando módulo de stock..."
+            )
+        );
+        navigationService.register(
+            AppView.POS,
+            new PosView()
+        );
         navigationService.register(
             AppView.REPORTS,
             new PlaceholderView(
@@ -70,7 +84,6 @@ public class MainShellView {
                 "El módulo de reportes se implementará más adelante."
             )
         );
-
         navigationService.register(
             AppView.SETTINGS,
             new PlaceholderView(
@@ -78,6 +91,23 @@ public class MainShellView {
                 "La configuración del sistema se implementará más adelante."
             )
         );
+    }
+
+    public void initializeWithData(AppContext context) {
+        this.appContext = context;
+
+        navigationService.register(
+            AppView.STOCK,
+            new StockView(appContext.getProductService())
+        );
+
+        if (navigationService.getCurrentView() == AppView.STOCK) {
+            navigationService.navigateTo(AppView.STOCK);
+        }
+    }
+
+    public BorderPane getRoot() {
+        return root;
     }
 
     private VBox buildSidebar() {
