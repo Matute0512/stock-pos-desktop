@@ -22,6 +22,14 @@ public class StockMovementDao {
     }
 
     public long insert(StockMovement movement) {
+        try (Connection con = dataSource.getConnection()) {
+            return insert(con, movement);
+        } catch (SQLException e) {
+            throw new TechnicalException("Error al guardar el movimiento de stock", e);
+        }
+    }
+
+    public long insert(Connection con, StockMovement movement) throws SQLException {
         String sql = """
                 INSERT INTO STOCK_MOVEMENT (
                     PRODUCT_ID, MOVEMENT_TYPE, QUANTITY, RESULT_STOCK_QTY,
@@ -29,8 +37,7 @@ public class StockMovementDao {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
 
-        try (Connection con = dataSource.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setLong(1, movement.getProductId());
             ps.setString(2, movement.getMovementType());
@@ -55,9 +62,6 @@ public class StockMovementDao {
             }
 
             throw new TechnicalException("No se pudo obtener el ID del movimiento");
-
-        } catch (SQLException e) {
-            throw new TechnicalException("Error al guardar el movimiento de stock", e);
         }
     }
 

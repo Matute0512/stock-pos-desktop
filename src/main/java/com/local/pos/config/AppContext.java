@@ -1,8 +1,11 @@
 package com.local.pos.config;
 
 import com.local.pos.domain.service.ProductService;
+import com.local.pos.domain.service.SaleService;
 import com.local.pos.domain.service.StockService;
 import com.local.pos.persistence.dao.ProductDao;
+import com.local.pos.persistence.dao.SaleDao;
+import com.local.pos.persistence.dao.SaleItemDao;
 import com.local.pos.persistence.dao.StockMovementDao;
 import com.local.pos.persistence.db.DataSourceFactory;
 import com.local.pos.persistence.db.FlywayMigrator;
@@ -15,6 +18,7 @@ public class AppContext {
     private HikariDataSource dataSource;
     private ProductService productService;
     private StockService stockService;
+    private SaleService saleService;
 
     public void init() {
         Path dataDir = Path.of(System.getProperty("user.home"), ".stockventa", "data");
@@ -24,9 +28,12 @@ public class AppContext {
 
         ProductDao productDao = new ProductDao(dataSource);
         StockMovementDao stockMovementDao = new StockMovementDao(dataSource);
+        SaleDao saleDao = new SaleDao(dataSource);
+        SaleItemDao saleItemDao = new SaleItemDao(dataSource);
 
         productService = new ProductService(productDao);
         stockService = new StockService(dataSource, productDao, stockMovementDao);
+        saleService = new SaleService(dataSource, saleDao, saleItemDao, productDao, stockMovementDao);
     }
 
     public ProductService getProductService() {
@@ -35,6 +42,10 @@ public class AppContext {
 
     public StockService getStockService() {
         return stockService;
+    }
+
+    public SaleService getSaleService() {
+        return saleService;
     }
 
     public void shutdown() {

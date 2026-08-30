@@ -75,7 +75,10 @@ public class MainShellView {
         );
         navigationService.register(
             AppView.POS,
-            new PosView()
+            new PlaceholderView(
+                "Punto de venta",
+                "Cargando módulo de punto de venta..."
+            )
         );
         navigationService.register(
             AppView.REPORTS,
@@ -101,6 +104,14 @@ public class MainShellView {
             new StockView(
                 appContext.getProductService(),
                 appContext.getStockService()
+            )
+        );
+
+        navigationService.register(
+            AppView.POS,
+            new PosView(
+                appContext.getProductService(),
+                appContext.getSaleService()
             )
         );
 

@@ -337,4 +337,45 @@ public class ProductDao {
             throw new TechnicalException("Error al actualizar stock", e);
         }
     }
+
+    public Product findByIdForUpdate(Connection con, long productId) throws SQLException {
+        String sql = """
+                SELECT ID, SKU, BARCODE, NAME, DESCRIPTION, CATEGORY_ID,
+                           COST, PRICE, STOCK_QTY, MIN_STOCK_QTY, ACTIVE,
+                           CREATED_AT, UPDATED_AT
+                FROM PRODUCT
+                WHERE ID = ?
+                FOR UPDATE
+                """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return map(rs);
+                }
+                return null;
+            }
+        }
+    }
+
+    public void updateStock(Connection con, long productId, BigDecimal newStock) throws SQLException {
+        String sql = """
+            UPDATE PRODUCT
+                SET STOCK_QTY = ?,
+                    UPDATED_AT = CURRENT_TIMESTAMP
+                WHERE ID = ?
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setBigDecimal(1, newStock);
+            ps.setLong(2, productId);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                throw new TechnicalException("No se pudo actualizar el stock del producto.");
+            }
+        }
+    }
 }

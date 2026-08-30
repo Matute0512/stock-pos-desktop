@@ -353,3 +353,64 @@
     -fx-font-style: italic;
 }
 
+/* =========================
+   Punto de venta (POS)
+========================= */
+
+.pos-left {
+    -fx-min-width: 420px;
+}
+
+.pos-row {
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 12;
+}
+
+.pos-row-caption {
+    -fx-text-fill: -text;
+    -fx-font-size: 14px;
+}
+
+.pos-row-value {
+    -fx-text-fill: -text;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.pos-total-row {
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 12;
+    -fx-padding: 10 0 0 0;
+}
+
+.pos-total-caption {
+    -fx-text-fill: -text;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.pos-total-amount {
+    -fx-text-fill: -primary;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+/* Ticket de impresión */
+.ticket {
+    -fx-font-family: "Consolas", "Monospaced";
+    -fx-font-size: 12px;
+    -fx-spacing: 4;
+    -fx-padding: 8;
+    -fx-background-color: white;
+}
+
+.ticket-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.ticket-line {
+    -fx-font-family: "Consolas", "Monospaced";
+    -fx-font-size: 12px;
+}
+
