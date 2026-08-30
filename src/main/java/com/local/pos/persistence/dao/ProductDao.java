@@ -4,12 +4,7 @@ import com.local.pos.core.TechnicalException;
 import com.local.pos.domain.model.Product;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -200,5 +195,95 @@ public class ProductDao {
         }
 
         return product;
+    }
+
+    public boolean barcodeExistsForOtherProduct(String barcode, Long excludeProductId) {
+
+        if (barcode == null || barcode.isBlank()) {
+            return false;
+        }
+
+        String sql = """
+                SELECT COUNT(1)
+                FROM PRODUCT
+                WHERE BARCODE = ?
+                  AND ACTIVE = TRUE
+                  AND (? IS NULL OR ID <> ?)
+                """;
+
+        try (Connection con = dataSource.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+
+            ps.setString(1, barcode);
+            if (excludeProductId == null) {
+                ps.setNull(2, java.sql.Types.BIGINT);
+                ps.setNull(3, java.sql.Types.BIGINT);
+            } else {
+                ps.setLong(2, excludeProductId);
+                ps.setLong(3, excludeProductId);
+            }
+
+            try (ResultSet rs = ps.executeQuery()){
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new TechnicalException("Error al verificar código de barras", e);
+        }
+    }
+
+    public void update(Product product) {
+        String sql = """
+                UPDATE PRODUCT
+                SET SKU = ?,
+                    BARCODE = ?,
+                    NAME = ?,
+                    DESCRIPTION = ?,
+                    CATEGORY_ID = ?,
+                    COST = ?,
+                    PRICE = ?,
+                    MIN_STOCK_QTY = ?,
+                    UPDATED_AT = CURRENT_TIMESTAMP
+                WHERE ID = ?
+        """;
+
+        try (Connection con = dataSource.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)){
+
+            ps.setString(1, product.getSku());
+            ps.setString(2, product.getBarcode());
+            ps.setString(3, product.getName());
+            ps.setString(4, product.getDescription());
+            ps.setObject(5, product.getCategoryId());
+            ps.setBigDecimal(6, product.getCost());
+            ps.setBigDecimal(7, product.getPrice());
+            ps.setBigDecimal(8, product.getMinStockQty());
+            ps.setLong(9, product.getId());
+
+            int rows = ps.executeUpdate();
+            if(rows == 0){
+                throw new TechnicalException("No se pudo actualizar el producto.");
+            }
+        } catch (SQLException e) {
+            throw new TechnicalException("Error al actualizar el producto", e);
+        }
+    }
+
+    public void deactivate(long productId) {
+        String sql = """
+                UPDATE PRODUCT
+                SET ACTIVE = FALSE,
+                    UPDATED_AT = CURRENT_TIMESTAMP
+                WHERE ID = ?
+        """;
+
+        try (Connection con = dataSource.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setLong(1, productId);
+            ps.executeUpdate();
+
+        } catch (SQLException e){
+            throw new TechnicalException("Error al desactivar el producto", e);
+        }
     }
 }

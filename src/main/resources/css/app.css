@@ -310,3 +310,34 @@
     -fx-font-weight: bold;
 }
 
+/* =========================
+   Botón de peligro (desactivar)
+========================= */
+
+.button-danger {
+    -fx-background-color: rgba(220, 38, 38, 0.08);
+    -fx-text-fill: -danger;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 12px;
+    -fx-padding: 10 16 10 16;
+    -fx-cursor: hand;
+}
+
+.button-danger:hover {
+    -fx-background-color: rgba(220, 38, 38, 0.16);
+}
+
+/* =========================
+   Celdas con advertencia
+========================= */
+
+.cell-warning {
+    -fx-text-fill: -warning;
+    -fx-font-weight: bold;
+}
+
+.cell-warning:selected {
+    -fx-text-fill: -warning;
+}
+
