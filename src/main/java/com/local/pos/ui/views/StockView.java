@@ -1,10 +1,14 @@
 package com.local.pos.ui.views;
 
+import com.local.pos.domain.model.StockMovement;
 import com.local.pos.core.AlertUtil;
 import com.local.pos.core.BusinessException;
 import com.local.pos.domain.model.Product;
 import com.local.pos.domain.service.ProductService;
+import com.local.pos.domain.service.StockService;
 import com.local.pos.ui.stock.ProductFormDialog;
+import com.local.pos.ui.stock.StockAdjustDialog;
+import com.local.pos.ui.stock.StockHistoryDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -24,19 +28,24 @@ import javafx.scene.layout.VBox;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Optional;
+import java.util.List;
 
 public class StockView extends VBox {
 
     private final ProductService productService;
+    private final StockService stockService;
     private final ObservableList<Product> products = FXCollections.observableArrayList();
     private final TableView<Product> table = new TableView<>();
     private final TextField searchField = new TextField();
 
     private Button editButton;
     private Button deactivateButton;
+    private Button historyButton;
+    private Button adjustStockButton;
 
-    public StockView(ProductService productService) {
+    public StockView(ProductService productService, StockService stockService) {
         this.productService = productService;
+        this.stockService = stockService;
 
         getStyleClass().add("view");
         setSpacing(18);
@@ -103,6 +112,16 @@ public class StockView extends VBox {
         deactivateButton.setDisable(true);
         deactivateButton.setOnAction(event -> deactivateSelectedProduct());
 
+        adjustStockButton = new Button("Ajustar stock");
+        adjustStockButton.getStyleClass().add("button-secondary");
+        adjustStockButton.setDisable(true);
+        adjustStockButton.setOnAction(event -> openAdjustStockDialog());
+
+        historyButton = new Button("Historial");
+        historyButton.getStyleClass().add("button-secondary");
+        historyButton.setDisable(true);
+        historyButton.setOnAction(event -> openHistoryDialog());
+
         Button refreshButton = new Button("Actualizar");
         refreshButton.getStyleClass().add("button-secondary");
         refreshButton.setOnAction(event -> refreshProducts());
@@ -112,6 +131,8 @@ public class StockView extends VBox {
             newProductButton,
             editButton,
             deactivateButton,
+            adjustStockButton,
+            historyButton,
             refreshButton
         );
 
@@ -197,6 +218,8 @@ public class StockView extends VBox {
             boolean hasSelection = newValue != null;
             editButton.setDisable(!hasSelection);
             deactivateButton.setDisable(!hasSelection);
+            adjustStockButton.setDisable(!hasSelection);
+            historyButton.setDisable(!hasSelection);
         });
     }
 
@@ -328,6 +351,55 @@ public class StockView extends VBox {
             products.setAll(productService.listProducts());
         } catch (Exception e) {
             AlertUtil.error("Error", "No se pudieron cargar los productos.");
+        }
+    }
+
+    private void openAdjustStockDialog() {
+        Product selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        StockAdjustDialog dialog = new StockAdjustDialog(selected);
+        Optional<StockAdjustDialog.Result> result = dialog.showAndWait();
+
+        result.ifPresent(data -> {
+            try {
+                BigDecimal quantity = new BigDecimal(
+                    data.quantityText().trim().replace(',', '.')
+                );
+
+                stockService.adjustStock(
+                    selected.getId(),
+                    data.type(),
+                    quantity,
+                    data.reason()
+                );
+
+                refreshProducts();
+
+            } catch (NumberFormatException e) {
+                AlertUtil.error("Cantidad inválida", "Ingresá un número válido.");
+            } catch (BusinessException e) {
+                AlertUtil.error("No se pudo ajustar el stock", e.getMessage());
+            } catch (Exception e) {
+                AlertUtil.error("Error", "Ocurrió un error inesperado.");
+            }
+        });
+    }
+
+    private void openHistoryDialog() {
+        Product selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+
+        try {
+            List<StockMovement> history = stockService.getHistory(selected.getId());
+            StockHistoryDialog dialog = new StockHistoryDialog(selected.getName(), history);
+            dialog.showAndWait();
+        } catch (Exception e) {
+            AlertUtil.error("Error", "No se pudo cargar el historial.");
         }
     }
 }

@@ -341,3 +341,13 @@
     -fx-text-fill: -warning;
 }
 
+/* =========================
+   Info en formularios
+========================= */
+
+.form-info {
+    -fx-text-fill: -text-muted;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}
+

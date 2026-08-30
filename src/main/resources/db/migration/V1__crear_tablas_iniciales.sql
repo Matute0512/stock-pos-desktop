@@ -39,9 +39,9 @@ CREATE TABLE STOCK_MOVEMENT(
                         'INITIAL',
                         'PURCHASE',
                         'SALE',
-                         'RETURN'
-                         'ADJUST_IN'
-                         'ADJUST_OUT'
+                        'RETURN',
+                        'ADJUST_IN',
+                        'ADJUST_OUT'
         )
     )
 );

@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 public class ProductDao {
 
@@ -284,6 +285,56 @@ public class ProductDao {
 
         } catch (SQLException e){
             throw new TechnicalException("Error al desactivar el producto", e);
+        }
+    }
+
+    public Product findById(long productId) {
+        String sql = """
+                SELECT ID, SKU, BARCODE, NAME, DESCRIPTION, CATEGORY_ID,
+                           COST, PRICE, STOCK_QTY, MIN_STOCK_QTY, ACTIVE,
+                           CREATED_AT ,UPDATED_AT
+                FROM PRODUCT
+                WHERE ID = ?
+        """;
+
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setLong(1, productId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return map(rs);
+                }
+                return null;
+            }
+
+        } catch (SQLException e) {
+            throw new TechnicalException("Error al obtener producto por ID", e);
+        }
+    }
+
+    public void updateStock(long productId, BigDecimal newStock) {
+        String sql = """
+            UPDATE PRODUCT
+                SET STOCK_QTY = ?,
+                    UPDATED_AT = CURRENT_TIMESTAMP
+                WHERE ID = ?
+            """;
+
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setBigDecimal(1, newStock);
+            ps.setLong(2, productId);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                throw new TechnicalException("No se pudo actualizar el stock del producto.");
+            }
+
+        } catch (SQLException e) {
+            throw new TechnicalException("Error al actualizar stock", e);
         }
     }
 }

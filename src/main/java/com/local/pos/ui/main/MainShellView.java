@@ -98,7 +98,10 @@ public class MainShellView {
 
         navigationService.register(
             AppView.STOCK,
-            new StockView(appContext.getProductService())
+            new StockView(
+                appContext.getProductService(),
+                appContext.getStockService()
+            )
         );
 
         if (navigationService.getCurrentView() == AppView.STOCK) {
