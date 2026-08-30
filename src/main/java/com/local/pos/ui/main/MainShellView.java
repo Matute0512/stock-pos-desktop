@@ -1,28 +1,83 @@
 package com.local.pos.ui.main;
 
+import com.local.pos.ui.navigation.AppView;
+import com.local.pos.ui.navigation.NavigationService;
+import com.local.pos.ui.views.DashboardView;
+import com.local.pos.ui.views.PlaceholderView;
+import com.local.pos.ui.views.PosView;
+import com.local.pos.ui.views.StockView;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 public class MainShellView {
 
     private final BorderPane root = new BorderPane();
+    private final StackPane contentArea = new StackPane();
+    private final NavigationService navigationService;
+    private final ToggleGroup navToggleGroup = new ToggleGroup();
+    private final Map<AppView, ToggleButton> navButtons = new EnumMap<>(AppView.class);
+
+    private Label pageTitle;
 
     public MainShellView() {
+        navigationService = new NavigationService(contentArea);
+
         root.getStyleClass().add("app-shell");
+        contentArea.getStyleClass().add("content-area");
+
+        registerViews();
+
         root.setLeft(buildSidebar());
         root.setTop(buildTopbar());
-        root.setCenter(buildDashboardPlaceholder());
+        root.setCenter(contentArea);
+
+        navigationService.currentViewProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                pageTitle.setText(newValue.getTitle());
+                selectNavButton(newValue);
+            }
+        });
+
+        navigationService.navigateTo(AppView.DASHBOARD);
     }
 
     public BorderPane getRoot() {
         return root;
+    }
+
+    private void registerViews() {
+        navigationService.register(AppView.DASHBOARD, new DashboardView());
+        navigationService.register(AppView.STOCK, new StockView());
+        navigationService.register(AppView.POS, new PosView());
+
+        navigationService.register(
+            AppView.REPORTS,
+            new PlaceholderView(
+                "Reportes",
+                "El módulo de reportes se implementará más adelante."
+            )
+        );
+
+        navigationService.register(
+            AppView.SETTINGS,
+            new PlaceholderView(
+                "Configuración",
+                "La configuración del sistema se implementará más adelante."
+            )
+        );
     }
 
     private VBox buildSidebar() {
@@ -36,20 +91,27 @@ public class MainShellView {
         Label title = new Label("Stock POS");
         title.getStyleClass().add("brand-title");
 
-        Label subTitle = new Label("Gestión del local");
-        subTitle.getStyleClass().add("brand-subtitle");
+        Label subtitle = new Label("Gestión del local");
+        subtitle.getStyleClass().add("brand-subtitle");
 
-        brand.getChildren().addAll(title, subTitle);
+        brand.getChildren().addAll(title, subtitle);
 
         VBox nav = new VBox(10);
         nav.getStyleClass().add("nav");
 
-        Button stockButton = createNavButton("Stock", false);
-        Button sellButton = createNavButton("Vender", true);
-        Button reportsButton = createNavButton("Reportes", false);
-        Button settingsButton = createNavButton("Configuración", false);
+        ToggleButton dashboardButton = createNavButton(AppView.DASHBOARD);
+        ToggleButton stockButton = createNavButton(AppView.STOCK);
+        ToggleButton sellButton = createNavButton(AppView.POS);
+        ToggleButton reportsButton = createNavButton(AppView.REPORTS);
+        ToggleButton settingsButton = createNavButton(AppView.SETTINGS);
 
-        nav.getChildren().addAll(stockButton, sellButton, reportsButton, settingsButton);
+        nav.getChildren().addAll(
+            dashboardButton,
+            stockButton,
+            sellButton,
+            reportsButton,
+            settingsButton
+        );
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -62,14 +124,16 @@ public class MainShellView {
         return sidebar;
     }
 
-    private Button createNavButton(String text, boolean active) {
-        Button button = new Button(text);
+    private ToggleButton createNavButton(AppView view) {
+        ToggleButton button = new ToggleButton(view.getLabel());
         button.getStyleClass().add("nav-button");
         button.setMaxWidth(Double.MAX_VALUE);
+        button.setToggleGroup(navToggleGroup);
+        button.setUserData(view);
 
-        if (active) {
-            button.getStyleClass().add("nav-button-active");
-        }
+        button.setOnAction(event -> navigationService.navigateTo(view));
+
+        navButtons.put(view, button);
 
         return button;
     }
@@ -80,7 +144,7 @@ public class MainShellView {
         topbar.setAlignment(Pos.CENTER_LEFT);
         topbar.setPadding(new Insets(18, 28, 18, 28));
 
-        Label pageTitle = new Label("Panel principal");
+        pageTitle = new Label("Panel principal");
         pageTitle.getStyleClass().add("page-title");
 
         Region spacer = new Region();
@@ -94,63 +158,10 @@ public class MainShellView {
         return topbar;
     }
 
-    private VBox buildDashboardPlaceholder() {
-        VBox content = new VBox(18);
-        content.getStyleClass().add("content");
-        content.setPadding(new Insets(28, 28, 28, 28));
-
-        Label sectionTitle = new Label("Resumen");
-        sectionTitle.getStyleClass().add("section-title");
-
-        HBox cards = new HBox(18);
-        cards.getStyleClass().add("cards-row");
-
-        cards.getChildren().addAll(
-            createCard("Productos", "Cargar, editar y consultar stock."),
-            createCard("Ventas", "Registrar ventas del día."),
-            createCard("Bajo stock", "Ver productos a reponer.")
-        );
-
-        VBox welcome = createCardLarge(
-            "Bienvenida",
-            "Este es el esqueleto inicial de la aplicación. En los próximos pasos vamos a reemplazar esta pantalla por los módulos de Stock y Punto de Venta."
-        );
-
-        content.getChildren().addAll(sectionTitle, cards, welcome);
-
-        return content;
-    }
-
-    private VBox createCard(String title, String text) {
-        VBox card = new VBox(8);
-        card.getStyleClass().add("card");
-        HBox.setHgrow(card, Priority.ALWAYS);
-
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("card-title");
-
-        Label textLabel = new Label(text);
-        textLabel.getStyleClass().add("card-text");
-        textLabel.setWrapText(true);
-
-        card.getChildren().addAll(titleLabel, textLabel);
-
-        return card;
-    }
-
-    private VBox createCardLarge(String title, String text) {
-        VBox card = new VBox(8);
-        card.getStyleClass().addAll("card", "card-large");
-
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("card-title");
-
-        Label textLabel = new Label(text);
-        textLabel.getStyleClass().add("card-text");
-        textLabel.setWrapText(true);
-
-        card.getChildren().addAll(titleLabel, textLabel);
-
-        return card;
+    private void selectNavButton(AppView view) {
+        ToggleButton button = navButtons.get(view);
+        if (button != null) {
+            button.setSelected(true);
+        }
     }
 }
