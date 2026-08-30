@@ -332,13 +332,15 @@
    Celdas con advertencia
 ========================= */
 
-.cell-warning {
+.modern-table .table-cell.cell-warning {
     -fx-text-fill: -warning;
     -fx-font-weight: bold;
+    -fx-background-color: rgba(217, 119, 6, 0.14);
 }
 
-.cell-warning:selected {
+.modern-table .table-cell.cell-warning:selected {
     -fx-text-fill: -warning;
+    -fx-background-color: rgba(217, 119, 6, 0.24);
 }
 
 /* =========================
