@@ -414,3 +414,14 @@
     -fx-font-size: 12px;
 }
 
+/* =========================
+   Reportes
+========================= */
+
+.report-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+

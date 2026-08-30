@@ -5,6 +5,7 @@ import com.local.pos.ui.navigation.NavigationService;
 import com.local.pos.ui.views.DashboardView;
 import com.local.pos.ui.views.PlaceholderView;
 import com.local.pos.ui.views.PosView;
+import com.local.pos.ui.views.ReportView;
 import com.local.pos.ui.views.SettingsView;
 import com.local.pos.ui.views.StockView;
 import com.local.pos.config.AppContext;
@@ -124,6 +125,11 @@ public class MainShellView {
                 appContext.getBackupService(),
                 appContext::shutdown
             )
+        );
+
+        navigationService.register(
+            AppView.REPORTS,
+            new ReportView(appContext.getReportService())
         );
 
         if (navigationService.getCurrentView() == AppView.STOCK) {
